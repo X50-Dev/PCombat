@@ -17,5 +17,5 @@ class PCOMBAT_API UComboDataAsset : public UPrimaryDataAsset
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
-	TMap<FName, UAttackDataAsset*> Combos;
+	TMap<FString, UAttackDataAsset*> Combos;
 };

@@ -23,6 +23,8 @@ protected:
 
 	void Attack(FString Input);
 
+	void ResetCombo();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -30,5 +32,22 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+public:
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* HeavyAttackAction;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* LowAttackAction;
 
+protected:
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoLowAttack();
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoHeavyAttack();
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Variable")
+	UComboDataAsset* ComboTree;
+
+private:
+	FString CurrentCombo;
 };

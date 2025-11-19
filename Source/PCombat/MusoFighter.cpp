@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ComboDataAsset.h"
+#include "AttackDataAsset.h"
 #include "MusoFighter.h"
 #include <Kismet/KismetStringLibrary.h>
 
@@ -41,4 +42,39 @@ void AMusoFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
+void AMusoFighter::DoLowAttack()
+{
+	Attack("X");
+}
+void AMusoFighter::DoHeavyAttack()
+{
+	Attack("Y");
+}
 
+void AMusoFighter::Attack(FString Input)
+{
+	if (!ComboTree) return;
+
+	CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, Input);
+
+	if (!ComboTree->Combos.Contains(CurrentCombo))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Invalid Combo: %s"), *CurrentCombo));
+		ResetCombo();
+		if (!ComboTree->Combos.Contains(Input))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Combo does not existe")));
+			return;
+		}
+		CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, Input);
+	}
+
+	UAttackDataAsset* Attack = ComboTree->Combos[CurrentCombo];
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("%s"), *Attack->GetName()));
+}
+
+
+void AMusoFighter::ResetCombo() 
+{
+	CurrentCombo = "";
+}

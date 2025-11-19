@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "AttackDataAsset.generated.h"
-
 /**
  * 
  */
@@ -17,4 +16,7 @@ class PCOMBAT_API UAttackDataAsset : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
+	UAnimSequence* Animation;
 };
