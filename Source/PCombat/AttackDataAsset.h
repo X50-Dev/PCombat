@@ -19,4 +19,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	UAnimSequence* Animation;
+
 };

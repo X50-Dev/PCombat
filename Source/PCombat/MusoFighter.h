@@ -23,6 +23,7 @@ protected:
 
 	void Attack(FString Input);
 
+	void DoAttack(UAttackDataAsset* Attack);
 	void ResetCombo();
 
 public:
@@ -50,4 +51,5 @@ public:
 
 private:
 	FString CurrentCombo;
+	void ResetComboTimer();
 };

@@ -5,7 +5,8 @@
 #include "ComboDataAsset.h"
 #include "AttackDataAsset.h"
 #include "MusoFighter.h"
-#include <Kismet/KismetStringLibrary.h>
+#include "AN_ComboAttack.h"
+#include "Kismet/KismetStringLibrary.h"
 
 // Sets default values
 AMusoFighter::AMusoFighter()
@@ -68,13 +69,38 @@ void AMusoFighter::Attack(FString Input)
 		}
 		CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, Input);
 	}
-
-	UAttackDataAsset* Attack = ComboTree->Combos[CurrentCombo];
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("%s"), *Attack->GetName()));
+	DoAttack(ComboTree->Combos[CurrentCombo]);
 }
 
+void AMusoFighter::DoAttack(UAttackDataAsset* Attack) 
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("%s"), *Attack->GetName()));
+
+	GetMesh()->PlayAnimation(Attack->Animation, false);
+
+	const auto NotifyEvents = Attack->Animation->Notifies;
+	for(FAnimNotifyEvent Event : NotifyEvents) 
+	{
+		if (const auto Notify = Cast<UAN_ComboAttack>(Event.Notify))
+		{
+			Notify->OnNotified.AddUObject(this, &AMusoFighter::ResetComboTimer);
+		}
+		else 
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("No Combo Notify found")));
+		}
+	}
+}
+
+void AMusoFighter::ResetComboTimer() 
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, FString::Printf(TEXT("Attack effected")));
+	FTimerHandle UnusedHandle;
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &AMusoFighter::ResetCombo, 0.7f, false);
+}
 
 void AMusoFighter::ResetCombo() 
 {
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Combo reset")));
 	CurrentCombo = "";
 }
