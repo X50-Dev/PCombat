@@ -18,7 +18,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void Attack(FString Input);
+	void Attack();
 
 	void DoAttack(UAttackDataAsset* Attack);
 	void ResetCombo();
@@ -28,7 +28,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void ResetComboTimer();
+	void OnAttackFinished();
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -45,7 +45,8 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, Category = "Variable")
 	UComboDataAsset* ComboTree;
-
+	UPROPERTY(EditAnywhere, Category = "Variable")
+	float TimerCount;
 private:
 	FTimerHandle ComboTimer;
 	FString InputAttack;

@@ -9,28 +9,23 @@
 
 AMusoFighter::AMusoFighter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 void AMusoFighter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AMusoFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (bBufferAttack && !bOnAttack) Attack(InputAttack);
 }
 
 void AMusoFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// Cast sécurisé vers UEnhancedInputComponent
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(LowAttackAction, ETriggerEvent::Started, this, &AMusoFighter::DoLowAttack);
@@ -43,35 +38,39 @@ void AMusoFighter::DoLowAttack()
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		InputAttack = "X";
-		bBufferAttack = true;
-	}	
+		if (!bOnAttack)
+			Attack();
+		else bBufferAttack = true;
+	}
 }
 void AMusoFighter::DoHeavyAttack()
 {
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		InputAttack = "Y";
-		bBufferAttack = true;
+		if (!bOnAttack)
+			Attack();
+		else bBufferAttack = true;
 	}
 }
 
-void AMusoFighter::Attack(FString Input)
+void AMusoFighter::Attack()
 {
 	if (!ComboTree) return;
 
 	bBufferAttack = false;
-	CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, Input);
+	CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, InputAttack);
 
 	if (!ComboTree->Combos.Contains(CurrentCombo))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Invalid Combo: %s"), *CurrentCombo));
 		ResetCombo();
-		if (!ComboTree->Combos.Contains(Input))
+		if (!ComboTree->Combos.Contains(InputAttack))
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Combo does not existe")));
 			return;
 		}
-		CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, Input);
+		CurrentCombo = UKismetStringLibrary::Concat_StrStr(CurrentCombo, InputAttack);
 	}
 	DoAttack(ComboTree->Combos[CurrentCombo]);
 }
@@ -87,31 +86,32 @@ void AMusoFighter::DoAttack(UAttackDataAsset* Attack)
 		return;
 	}
 	bOnAttack = true;
-
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 	AnimInstance->PlaySlotAnimationAsDynamicMontage(Attack->Animation,
 		FName("DefaultSlot"), 0.1f, 0.1f, 1.0f, 1.0f, -1.0f);
 
 	GetWorldTimerManager().ClearAllTimersForObject(this);
-	//GetWorldTimerManager().SetTimer(ComboTimer, this, &AMusoFighter::ResetCombo, 0.0f, false);
 	const auto NotifyEvents = Attack->Animation->Notifies;
 	for (FAnimNotifyEvent Event : NotifyEvents)
 	{
 		if (const auto Notify = Cast<UAN_ComboAttack>(Event.Notify))
-		{
 			return;
-		}
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ERROR : No Combo Notify found")));
 	bOnAttack = false;
 }
 
-void AMusoFighter::ResetComboTimer() 
+void AMusoFighter::OnAttackFinished() 
 {
-	bOnAttack = false;
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, FString::Printf(TEXT("Attack effected")));
-	GetWorldTimerManager().SetTimer(ComboTimer, this, &AMusoFighter::ResetCombo, 0.7f, false);
+	if (!bBufferAttack)
+	{
+		bOnAttack = false;
+		GetCharacterMovement()->MaxWalkSpeed = 600.f;
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, FString::Printf(TEXT("Attack effected")));
+		GetWorldTimerManager().SetTimer
+		(ComboTimer, this, &AMusoFighter::ResetCombo, TimerCount, false);
+	}
+	else Attack();
 }
 
 void AMusoFighter::ResetCombo() 
