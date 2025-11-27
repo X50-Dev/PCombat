@@ -9,14 +9,11 @@
 /**
  * 
  */
-DECLARE_MULTICAST_DELEGATE(FOnNotifiedSignature);
-
 UCLASS()
 class PCOMBAT_API UAN_ComboAttack : public UAnimNotify
 {
 	GENERATED_BODY()
 	
 public:
-	FOnNotifiedSignature OnNotified;
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 };
